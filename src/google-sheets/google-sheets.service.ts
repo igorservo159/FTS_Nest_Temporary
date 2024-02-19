@@ -1,16 +1,20 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+require('dotenv').config();
+/* eslint-enable @typescript-eslint/no-var-requires */
+
 import { Injectable } from '@nestjs/common';
-const { google } = require('googleapis');
+import { google } from 'googleapis';
 
 @Injectable()
 export class GoogleSheetsService {
   async getDataFromGoogleSheet() {
     const auth = new google.auth.GoogleAuth({
-      keyFile: 'credentials.google.json',
+      keyFile: process.env.GOOGLEAPI_CREDENTIALS,
       scopes: 'https://www.googleapis.com/auth/spreadsheets',
     });
 
     const sheets = google.sheets({ version: 'v4', auth });
-    const spreadsheetId = '1Cmmk_hHivmSjVAKVEixpq8rFIZTvPp_wngbF44OtmeM';
+    const spreadsheetId = process.env.SPREADSHEET_ID;
     const range = 'ENEM!A1:H515';
 
     try {

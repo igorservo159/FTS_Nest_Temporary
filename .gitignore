@@ -4,10 +4,10 @@
 /build
 
 #Credencial Google Sheets
-credentials.google.json
+googleapi-credentials.json
 
-#Chave do JWT
-constants.ts
+#Variáveis de ambiente
+.env
 
 # Logs
 logs
