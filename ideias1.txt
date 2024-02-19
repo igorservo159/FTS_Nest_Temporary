@@ -1,0 +1,61 @@
+Requisição do tipo POST;
+
+body_req: JSON {
+	"data_inicio": 10/03/2024,
+	"data_termino": 10/08/2024,
+	"dias_semana": 00101010 (42),
+	"horas_por_dia": 4,
+}
+
+function calculaDiasLiquidos(){
+	...
+	return diasliquidos
+};
+
+function calculaHorasLiquidas(){
+	...
+	return horasLiquidas
+};
+
+if(horasLiquidas <= horas_aulas_altas){
+	lógica para usuário ver apenas aulas altas em ordem
+}
+elseif(horasLiquidas <= horas_aulas_media + horas_aulas_altas){
+	logica para usuario ver apenas aulas altas e médias em ordem até queimar o limite de horas de aulas com relevância média, depois todas as aulas altas
+}
+elseif(horasLiquidas <= horas_aulas_media + horas_aulas_altas + horas_aulas_baixas){
+	logica para usuario ver apenas aulas altas, médias e baixas em ordem até queimar o limite de horas de aulas com relevância baixa, depois todas as aulas altas e médias
+}
+
+p/ cada aula, precisa de 30 minutos contando com exercícios e exemplos
+
+378 aulas altas
+48 aulas médias
+53 aulas baixas
+
+import { Injectable } from '@nestjs/common';
+import { differenceInWeeks } from 'date-fns';
+
+@Injectable()
+export class DateService {
+  countWeeksBetweenDates(startDate: Date, endDate: Date): number {
+	const weeks = differenceInWeeks(endDate, startDate);
+	return weeks;
+  }
+}
+
+
+<select [(ngModel)]="diasSemana" name="diasSemana" multiple>
+  <option [value]="1">Domingo</option>
+  <option [value]="2">Segunda-feira</option>
+  <option [value]="4">Terça-feira</option>
+  <option [value]="8">Quarta-feira</option>
+  <option [value]="16">Quinta-feira</option>
+  <option [value]="32">Sexta-feira</option>
+  <option [value]="64">Sábado</option>
+</select>
+
+
+
+
+ACho que sim

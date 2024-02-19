@@ -1,0 +1,54 @@
+Requisição do tipo POST;
+
+body_req: JSON {
+    "data_inicio": 10/03/2024,
+    "data_termino": 10/08/2024,
+    "dias_semana": 00101010 (42),
+    "horas_por_dia": 4,
+}
+
+function calculaDiasLiquidos(){
+    ...
+    return diasliquidos
+};
+
+function calculaHorasLiquidas(){
+    ...
+    return horasLiquidas
+};
+
+const semanas = countWeeksBetweenDates(data_inicio, data_termino)
+
+if(semanas > 20 && semanas <= 30){
+    if(horas_por_dia >= 1.5 && horas_por_dia <= 2){
+        relevancias = [3, 2]
+        pegar 2 aulas em ordem de grande_topico_id
+    }
+    elseif(horas_por_dia >= 2.5 && horas_por_dia <= 3){
+        relevancias = [3, 2, 1]
+        pegar 3 aulas em ordem de grande_topico_id
+    }
+    elseif(horas_por_dia >= 3.5 && horas_por_dia <= 4){
+        relevancias = [3, 2, 1]
+        pegar 5 aulas em ordem de grande_topico_id
+    }
+}
+
+
+p/ cada aula, precisa de 30 minutos contando com exercícios e exemplos
+
+
+378 aulas altas
+48 aulas médias
+53 aulas baixas
+
+import { Injectable } from '@nestjs/common';
+import { differenceInWeeks } from 'date-fns';
+
+@Injectable()
+export class DateService {
+  countWeeksBetweenDates(startDate: Date, endDate: Date): number {
+    const weeks = differenceInWeeks(endDate, startDate);
+    return weeks;
+  }
+}
