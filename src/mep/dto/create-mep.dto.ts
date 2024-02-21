@@ -1,11 +1,17 @@
-import { Double } from 'typeorm';
-
+import { IsInt, Min, Max, IsNumber, IsDate, IsIn } from 'class-validator';
 export class CreateMepDto {
-  data_inicio: Date;
+  @IsDate()
+  startDate: Date;
 
-  data_termino: Date;
+  @IsDate()
+  endDate: Date;
 
-  dias_semana: number;
+  @IsInt()
+  @Min(0)
+  @Max(127)
+  weekDays: number;
 
-  horas_por_dia: number;
+  @IsNumber()
+  @IsIn([1, 1.5, 2, 2.5, 3, 3.5, 4])
+  hoursPerDay: number;
 }
