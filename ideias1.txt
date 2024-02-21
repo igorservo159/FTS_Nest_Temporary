@@ -59,3 +59,20 @@ export class DateService {
 
 
 ACho que sim
+
+
+cria vetor vazio cronograma
+
+Pegar um vetor v de aulas 
+	Definir o número n de dias
+	Definir o número m de aulas/dia
+
+	LAÇO(
+		P/cada dia, pegar m aulas válidas (relevância) do v, 
+		tirar essas m aulas do vetor v (SHIFT()),
+		adiciona ao vetor cronograma essas m aulas e diz o dia
+
+		Faz isso até acabar n ou acabar o vetor v
+	)
+
+

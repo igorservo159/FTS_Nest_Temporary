@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-const { google } = require('googleapis');
+import { google } from 'googleapis';
 
 @Injectable()
 export class GoogleSheetsService {
@@ -19,14 +19,14 @@ export class GoogleSheetsService {
         range,
       });
 
-      const dicionarioRelevacia = {
+      const relevanceDictionary = {
         NEN: 0,
         BAI: 1,
         MED: 2,
         ALT: 3,
       };
 
-      const dicionarioFrente = {
+      const frontDictionary = {
         'Frente A': 1,
         'Frente B': 2,
         'Frente C': 3,
@@ -35,24 +35,24 @@ export class GoogleSheetsService {
       const [header, ...rows] = response.data.values;
       const data = rows.map((row, index) => {
         const [
-          grande_topico_id,
-          frente,
-          grande_topico_name,
-          topico_name,
-          aula_name,
-          relevancia,
-          percentual,
+          great_topic_id,
+          front,
+          great_topic_name,
+          topic_name,
+          class_name,
+          relevance,
+          percentage,
           total,
         ] = row;
         return {
           id: index + 1,
-          grande_topico_id,
-          frente: dicionarioFrente[frente],
-          grande_topico_name,
-          topico_name,
-          aula_name,
-          relevancia: dicionarioRelevacia[relevancia],
-          percentual,
+          great_topic_id,
+          front: frontDictionary[front],
+          great_topic_name,
+          topic_name,
+          class_name,
+          relevance: relevanceDictionary[relevance],
+          percentage,
           total,
         };
       });
