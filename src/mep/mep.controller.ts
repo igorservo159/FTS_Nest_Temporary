@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  HttpException,
-} from '@nestjs/common';
+import { Controller, Post, Body, HttpException } from '@nestjs/common';
 import { MepService } from './mep.service';
 import { CreateMepDto } from './dto/create-mep.dto';
 import { GSheetPipe } from 'src/gsheet-pipe/gsheet.pipe';
@@ -17,9 +8,10 @@ export class MepController {
   constructor(private readonly mepService: MepService) {}
 
   @Post()
-  async create(@Body(new GSheetPipe()) createMepDto: CreateMepDto) {
+  async create(@Body() createMepDto: CreateMepDto) {
+    console.log(createMepDto);
     try {
-      return this.mepService.create(createMepDto);
+      return this.mepService.createMep(createMepDto);
     } catch (error) {
       return new HttpException(error, 402);
     }

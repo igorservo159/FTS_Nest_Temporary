@@ -8,9 +8,9 @@ import { ClassFromSheetDto } from './dto/class-from-sheet.dto';
 
 @Injectable()
 export class GoogleSheetsService {
-  async getDataFromGoogleSheet() {
+  async getFormatedData(sheetName: string) {
     const classBruteTable = await this.getBruteTableFromGooleSheet(
-      process.env.ENEM_SHEET_NAME,
+      sheetName,
       process.env.ENEM_SHEET_RANGE,
     );
 
