@@ -6,6 +6,9 @@
 #Credencial Google Sheets
 googleapi-credentials.json
 
+#Lógica do Mep
+mep-logic.json
+
 #Variáveis de ambiente
 .env
 

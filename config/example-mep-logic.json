@@ -1,0 +1,32 @@
+[
+  {
+    "weeksRange": [20, 30],
+    "conditions": [
+      {
+        "daysPerWeek": [1, 2],
+        "subconditions": [
+          {
+            "hoursPerDay": [],
+            "classesPerDay": 0,
+            "minRelevance": 0
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "weeksRange": [15, 20],
+    "conditions": [
+      {
+        "daysPerWeek": [2, 3],
+        "subconditions": [
+          {
+            "hoursPerDay": [],
+            "classesPerDay": 0,
+            "minRelevance": 0
+          }
+        ]
+      }
+    ]
+  }
+]

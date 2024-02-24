@@ -5,11 +5,25 @@ require('dotenv').config();
 import { Injectable } from '@nestjs/common';
 import { CreateMepDto } from './dto/create-mep.dto';
 import { GoogleSheetsService } from 'src/google-sheets/google-sheets.service';
+import { differenceInWeeks } from 'date-fns';
+import { readFileSync } from 'fs';
 
-type MepClassesDetails = {
+interface MepClassesDetails {
   classesPerDay: number;
   minRelevance: number;
-};
+}
+
+interface MepLogicScenario {
+  weeksRange: [number, number];
+  conditions: {
+    daysPerWeek: number[];
+    subconditions: {
+      hoursPerDay: number[];
+      classesPerDay: number;
+      minRelevance: number;
+    }[];
+  }[];
+}
 
 @Injectable()
 export class MepService {
@@ -33,8 +47,13 @@ export class MepService {
     const service = this.googleSheetsService;
     const allClasses = await service.getFormatedData(entranceExamSheetName);
 
+    //calculamos o número de semanas
+    const weeksCount = this.countWeeksBetweenDates(startDate, endDate);
+
     //calculamos quantas aulas por dia e a relevancia mínima das aulas.
     const { classesPerDay, minRelevance } = this.createMepClassesDetails(
+      weeksCount,
+      chosenDays.length,
       createMepDto.hoursPerDay,
     );
 
@@ -100,23 +119,46 @@ export class MepService {
     return schedule;
   }
 
-  private createMepClassesDetails(hoursPerDay: number): MepClassesDetails {
-    let classesPerDay: number;
-    let minRelevance: number;
-    if (hoursPerDay == 1.5 || hoursPerDay == 2) {
-      classesPerDay = 2;
-      minRelevance = 2;
-    } else if (hoursPerDay == 2.5 || hoursPerDay == 3) {
-      classesPerDay = 3;
-      minRelevance = 1;
-    } else if (hoursPerDay == 3.5 || hoursPerDay == 4) {
-      classesPerDay = 5;
-      minRelevance = 1;
+  private createMepClassesDetails(
+    weeksCount: number,
+    daysPerWeek: number,
+    hoursPerDay: number,
+  ): MepClassesDetails {
+    const mepLogicPath = process.env.MEP_LOGIC;
+    const mepLogicData = readFileSync(mepLogicPath, 'utf-8');
+    const mepLogic: MepLogicScenario[] = JSON.parse(mepLogicData);
+
+    // Encontre o cenário apropriado com base no intervalo de semanas
+    const relevantScenario = mepLogic.find((scenario) => {
+      const [minWeeks, maxWeeks] = scenario.weeksRange;
+      return weeksCount > minWeeks && weeksCount <= maxWeeks;
+    });
+
+    if (!relevantScenario) {
+      throw new Error('Prazo de semanas inválido');
+    }
+
+    // Encontre a condição apropriada com base nos dias por semana
+    const relevantCondition = relevantScenario.conditions.find((condition) =>
+      condition.daysPerWeek.includes(daysPerWeek),
+    );
+
+    if (!relevantCondition) {
+      throw new Error('Número inválido de dias por semana');
+    }
+
+    // Encontre a subcondição apropriada com base nas horas por dia
+    const relevantSubcondition = relevantCondition.subconditions.find(
+      (subcondition) => subcondition.hoursPerDay.includes(hoursPerDay),
+    );
+
+    if (!relevantSubcondition) {
+      throw new Error('Combinação inválida de horas por dia');
     }
 
     return {
-      classesPerDay,
-      minRelevance,
+      classesPerDay: relevantSubcondition.classesPerDay,
+      minRelevance: relevantSubcondition.minRelevance,
     };
   }
 
@@ -128,5 +170,10 @@ export class MepService {
       }
     }
     return week;
+  }
+
+  private countWeeksBetweenDates(startDate: Date, endDate: Date): number {
+    const weeks = differenceInWeeks(endDate, startDate);
+    return weeks;
   }
 }
