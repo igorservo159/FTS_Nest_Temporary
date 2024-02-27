@@ -6,8 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { GoogleSheetsService } from './google-sheets/google-sheets.service';
 import { GoogleSheetsController } from './google-sheets/google-sheets.controller';
 import { MepModule } from './mep/mep.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Mep } from './mep/entities/mep.entity';
+import { FirebaseAuthStrategy } from './auth/firebase.strategy';
+import { FirestoreService } from './firestore/firestore.service';
 
 @Module({
   imports: [
@@ -26,6 +26,11 @@ import { Mep } from './mep/entities/mep.entity';
     }),*/
   ],
   controllers: [AppController, GoogleSheetsController],
-  providers: [AppService, GoogleSheetsService],
+  providers: [
+    AppService,
+    GoogleSheetsService,
+    FirebaseAuthStrategy,
+    FirestoreService,
+  ],
 })
 export class AppModule {}

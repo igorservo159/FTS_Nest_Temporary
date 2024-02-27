@@ -2,7 +2,7 @@
 /dist
 /node_modules
 /build
-
+/gabriel_testes
 #Credencial Google Sheets
 googleapi-credentials.json
 

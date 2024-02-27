@@ -2,21 +2,33 @@ import {
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
   Param,
-  Delete,
+  Body,
+  HttpException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get(':username')
-  findOne(@Param('username') username: string) {
-    return this.usersService.findOne(username);
+  @Get()
+  async getAllUsers() {
+    return await this.usersService.getAllUsers();
+  }
+
+  @Get(':uid')
+  async getUserByUid(@Param('uid') uid: string) {
+    return await this.usersService.getUserByUid(uid);
+  }
+
+  @Post('create')
+  async create(@Body() createMepDto: CreateUserDto) {
+    try {
+      this.usersService.createUserInFirebase(createMepDto);
+    } catch (error) {
+      return new HttpException(error, 400);
+    }
   }
 }
