@@ -23,4 +23,15 @@ export class MepController {
       return new HttpException(error, 402);
     }
   }
+
+  @Post('teste')
+  @UsePipes(new ValidateMepDatesPipe())
+  async createClassesArray(@Body() createMepDto: CreateMepDto) {
+    console.log(createMepDto);
+    try {
+      return this.mepService.createRecommendedClassesArray(createMepDto);
+    } catch (error) {
+      return new HttpException(error, 402);
+    }
+  }
 }

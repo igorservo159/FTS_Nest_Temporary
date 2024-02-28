@@ -9,7 +9,7 @@ import { differenceInWeeks } from 'date-fns';
 import { readFileSync } from 'fs';
 
 interface MepClassesDetails {
-  classesPerDay: number;
+  lessonsPerDay: number;
   minRelevance: number;
 }
 
@@ -28,6 +28,154 @@ interface MepLogicScenario {
 @Injectable()
 export class MepService {
   constructor(private googleSheetsService: GoogleSheetsService) {}
+
+  async createRecommendedClassesArray(createMepDto: CreateMepDto) {
+    const startDate = new Date(createMepDto.startDate);
+    const endDate = new Date(createMepDto.endDate);
+    const chosenDays = this.bitsToDays(createMepDto.weekDays);
+
+    //criamos a estrutura no mep apenas com as datas.
+    const mepScheduleStructure = this.createMepScheduleStructure(
+      startDate,
+      endDate,
+      chosenDays,
+    );
+
+    //recuperamos todas as aulas de acordo com a sheet do exame específico passado pelo usuário.
+    const entranceExamSheetName = createMepDto.entrance_exam;
+    const service = this.googleSheetsService;
+    const allLessons = await service.getFormatedData(entranceExamSheetName);
+
+    //calculamos o número de semanas
+    const weeksCount = this.countWeeksBetweenDates(startDate, endDate);
+
+    //calculamos quantas aulas por dia e a relevancia mínima das aulas.
+    const { lessonsPerDay, minRelevance } = this.createMepClassesDetails(
+      weeksCount,
+      chosenDays.length,
+      createMepDto.hoursPerDay,
+    );
+
+    const recommendedLessonsCount = lessonsPerDay * mepScheduleStructure.length;
+    const highRelevanceLessons = allLessons.filter(
+      (lesson) => lesson.relevance == 3,
+    );
+    const mediumRelevanceLessons = allLessons.filter(
+      (lesson) => lesson.relevance == 2,
+    );
+    const lowRelevanceLessons = allLessons.filter(
+      (lesson) => lesson.relevance == 1,
+    );
+
+    let recommendedLessons = [];
+
+    if (highRelevanceLessons.length >= recommendedLessonsCount) {
+      recommendedLessons = highRelevanceLessons.slice(
+        0,
+        recommendedLessonsCount,
+      );
+    } else if (
+      highRelevanceLessons.length + mediumRelevanceLessons.length >
+      recommendedLessonsCount
+    ) {
+      const highLessonsCount = highRelevanceLessons.length;
+      const mediumLessonsCount = recommendedLessonsCount - highLessonsCount;
+      const classesPerFront = this.getClassesPerFront(
+        mediumRelevanceLessons,
+        mediumLessonsCount,
+      );
+      let mediumIterator = 0;
+      let highIterator = 0;
+      let AFrontIterator = 0;
+      let BFrontIterator = 0;
+      let CFrontIterator = 0;
+
+      for (let i = 0; i < allLessons.length; i++) {
+        let lesson = allLessons[i];
+        if (
+          (lesson.relevance === 2 && mediumIterator < mediumLessonsCount) ||
+          (lesson.relevance === 3 && highIterator < highLessonsCount)
+        ) {
+          if (lesson.relevance === 2) {
+            if (lesson.front == 1 && AFrontIterator < classesPerFront.frontA) {
+              AFrontIterator++;
+              mediumIterator++;
+            } else if (
+              lesson.front == 2 &&
+              BFrontIterator < classesPerFront.frontB
+            ) {
+              BFrontIterator++;
+              mediumIterator++;
+            } else if (
+              lesson.front == 3 &&
+              CFrontIterator < classesPerFront.frontC
+            ) {
+              CFrontIterator++;
+              mediumIterator++;
+            }
+          } else if (lesson.relevance === 3) {
+            highIterator++;
+          }
+          recommendedLessons.push(lesson);
+        }
+      }
+    } else if (
+      highRelevanceLessons.length +
+        mediumRelevanceLessons.length +
+        lowRelevanceLessons.length >=
+      recommendedLessonsCount
+    ) {
+      const highLessonsCount = highRelevanceLessons.length;
+      const mediumLessonsCount = mediumRelevanceLessons.length;
+      const lowLessonsCount =
+        recommendedLessonsCount - highLessonsCount - mediumLessonsCount;
+      const classesPerFront = this.getClassesPerFront(
+        lowRelevanceLessons,
+        lowLessonsCount,
+      );
+      let lowIterator = 0;
+      let mediumIterator = 0;
+      let highIterator = 0;
+      let AFrontIterator = 0;
+      let BFrontIterator = 0;
+      let CFrontIterator = 0;
+
+      for (let i = 0; i < allLessons.length; i++) {
+        let lesson = allLessons[i];
+        if (
+          (lesson.relevance === 1 && lowIterator < lowLessonsCount) ||
+          (lesson.relevance === 2 && mediumIterator < mediumLessonsCount) ||
+          (lesson.relevance === 3 && highIterator < highLessonsCount)
+        ) {
+          if (lesson.relevance === 1) {
+            if (lesson.front == 1 && AFrontIterator < classesPerFront.frontA) {
+              AFrontIterator++;
+              lowIterator++;
+            } else if (
+              lesson.front == 2 &&
+              BFrontIterator < classesPerFront.frontB
+            ) {
+              BFrontIterator++;
+              lowIterator++;
+            } else if (
+              lesson.front == 3 &&
+              CFrontIterator < classesPerFront.frontC
+            ) {
+              CFrontIterator++;
+              lowIterator++;
+            }
+          } else if (lesson.relevance === 2) {
+            mediumIterator++;
+          } else if (lesson.relevance === 3) {
+            highIterator++;
+          }
+          recommendedLessons.push(lesson);
+        }
+      }
+    }
+
+    return recommendedLessons;
+  }
 
   async createMep(createMepDto: CreateMepDto) {
     //Recuperamos as especificações do usuário para poder criar seu mep.
@@ -51,7 +199,7 @@ export class MepService {
     const weeksCount = this.countWeeksBetweenDates(startDate, endDate);
 
     //calculamos quantas aulas por dia e a relevancia mínima das aulas.
-    const { classesPerDay, minRelevance } = this.createMepClassesDetails(
+    const { lessonsPerDay, minRelevance } = this.createMepClassesDetails(
       weeksCount,
       chosenDays.length,
       createMepDto.hoursPerDay,
@@ -65,7 +213,7 @@ export class MepService {
     //agrupamos as aulas de acordo com a quantidade de aulas por dia
     //['aula_a', 'aula_b','aula_c','aula_d'] -> [['aula_a', 'aula_b'] ,['aula_c','aula_d']]
     const groupedClasses = availableClasses.reduce((result, item, index) => {
-      const linhaAtual = Math.floor(index / classesPerDay);
+      const linhaAtual = Math.floor(index / lessonsPerDay);
       if (!result[linhaAtual]) {
         result[linhaAtual] = [];
       }
@@ -157,7 +305,7 @@ export class MepService {
     }
 
     return {
-      classesPerDay: relevantSubcondition.classesPerDay,
+      lessonsPerDay: relevantSubcondition.classesPerDay,
       minRelevance: relevantSubcondition.minRelevance,
     };
   }
@@ -175,5 +323,54 @@ export class MepService {
   private countWeeksBetweenDates(startDate: Date, endDate: Date): number {
     const weeks = differenceInWeeks(endDate, startDate);
     return weeks;
+  }
+
+  private getClassesPerFront(anyRelevanceLessons, anyLessonsCount) {
+    const frontALessons = anyRelevanceLessons.filter(
+      (lesson) => lesson.front == 1,
+    );
+    const frontBLessons = anyRelevanceLessons.filter(
+      (lesson) => lesson.front == 2,
+    );
+    const frontCLessons = anyRelevanceLessons.filter(
+      (lesson) => lesson.front == 3,
+    );
+
+    const proportionFrontALessons =
+      frontALessons.length / anyRelevanceLessons.length;
+    const proportionFrontBLessons =
+      frontBLessons.length / anyRelevanceLessons.length;
+    const proportionFrontCLessons =
+      frontCLessons.length / anyRelevanceLessons.length;
+
+    // Divide o número de aulas de relevância média em três partes proporcionais
+    const classesPerFront = {
+      frontA: Math.round(anyLessonsCount * proportionFrontALessons),
+      frontB: Math.round(anyLessonsCount * proportionFrontBLessons),
+      frontC: Math.round(anyLessonsCount * proportionFrontCLessons),
+    };
+
+    const totalAdjusted =
+      classesPerFront.frontA + classesPerFront.frontB + classesPerFront.frontC;
+    const adjustment = anyLessonsCount - totalAdjusted;
+    if (adjustment !== 0) {
+      // Adiciona o ajuste ao maior valor proporcional
+      if (adjustment > 0) {
+        const frontsArray = ['frontA', 'frontB', 'frontC'];
+        const largestFront = frontsArray.reduce((prev, curr) => {
+          return classesPerFront[prev] > classesPerFront[curr] ? prev : curr;
+        });
+        classesPerFront[largestFront] += adjustment;
+      } else {
+        // Subtrai o ajuste do menor valor proporcional
+        const frontsArray = ['frontA', 'frontB', 'frontC'];
+        const smallestFront = frontsArray.reduce((prev, curr) => {
+          return classesPerFront[prev] < classesPerFront[curr] ? prev : curr;
+        });
+        classesPerFront[smallestFront] += adjustment;
+      }
+    }
+
+    return classesPerFront;
   }
 }
