@@ -5,6 +5,7 @@ require('dotenv').config();
 import { Injectable } from '@nestjs/common';
 import { CreateMepDto } from './dto/create-mep.dto';
 import { GoogleSheetsService } from 'src/google-sheets/google-sheets.service';
+import { error } from 'console';
 
 type MepClassesDetails = {
   classesPerDay: number;
@@ -15,7 +16,7 @@ type MepClassesDetails = {
 export class MepService {
   constructor(private googleSheetsService: GoogleSheetsService) {}
 
-  async createMep(createMepDto: CreateMepDto) {
+  async createMep(createMepDto: CreateMepDto): Promise<any[]> {
     //Recuperamos as especificações do usuário para poder criar seu mep.
     const startDate = new Date(createMepDto.startDate);
     const endDate = new Date(createMepDto.endDate);
@@ -74,7 +75,7 @@ export class MepService {
     startDate: Date,
     endDate: Date,
     chosenDays: number[],
-  ) {
+  ): any[] {
     const weekDictionary = {
       0: 'Domingo',
       1: 'Segunda',
@@ -84,7 +85,7 @@ export class MepService {
       5: 'Sexta',
       6: 'Sábado',
     };
-    const schedule = [];
+    const schedule: any[] = [];
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
       const monthDay = String(currentDate.getDate()).padStart(2, '0');
@@ -112,6 +113,8 @@ export class MepService {
     } else if (hoursPerDay == 3.5 || hoursPerDay == 4) {
       classesPerDay = 5;
       minRelevance = 1;
+    } else {
+      throw new error('horas por dia invalidas');
     }
 
     return {
