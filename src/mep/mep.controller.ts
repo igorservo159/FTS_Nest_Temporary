@@ -13,7 +13,7 @@ import { ValidateMepDatesPipe } from 'src/pipes/ValidationMepDates.pipe';
 export class MepController {
   constructor(private readonly mepService: MepService) {}
 
-  @Post()
+  @Post('create')
   @UsePipes(new ValidateMepDatesPipe())
   async create(@Body() createMepDto: CreateMepDto) {
     console.log(createMepDto);
@@ -24,7 +24,7 @@ export class MepController {
     }
   }
 
-  @Post('teste')
+  @Post('getRecommendedLessons')
   @UsePipes(new ValidateMepDatesPipe())
   async createClassesArray(@Body() createMepDto: CreateMepDto) {
     console.log(createMepDto);

@@ -7,10 +7,10 @@ import { CreateMepDto } from './dto/create-mep.dto';
 import { GoogleSheetsService } from 'src/google-sheets/google-sheets.service';
 import { differenceInWeeks } from 'date-fns';
 import { readFileSync } from 'fs';
+import { receiveMessageOnPort } from 'worker_threads';
 
 interface MepClassesDetails {
   lessonsPerDay: number;
-  minRelevance: number;
 }
 
 interface MepLogicScenario {
@@ -20,7 +20,6 @@ interface MepLogicScenario {
     subconditions: {
       hoursPerDay: number[];
       classesPerDay: number;
-      minRelevance: number;
     }[];
   }[];
 }
@@ -50,13 +49,16 @@ export class MepService {
     const weeksCount = this.countWeeksBetweenDates(startDate, endDate);
 
     //calculamos quantas aulas por dia e a relevancia mínima das aulas.
-    const { lessonsPerDay, minRelevance } = this.createMepClassesDetails(
+    const { lessonsPerDay } = this.createMepClassesDetails(
       weeksCount,
       chosenDays.length,
       createMepDto.hoursPerDay,
     );
 
     const recommendedLessonsCount = lessonsPerDay * mepScheduleStructure.length;
+    const superHighRelevanceLessons = allLessons.filter(
+      (lesson) => lesson.relevance == 4,
+    );
     const highRelevanceLessons = allLessons.filter(
       (lesson) => lesson.relevance == 3,
     );
@@ -69,23 +71,73 @@ export class MepService {
 
     let recommendedLessons = [];
 
-    if (highRelevanceLessons.length >= recommendedLessonsCount) {
-      recommendedLessons = highRelevanceLessons.slice(
+    if (superHighRelevanceLessons.length >= recommendedLessonsCount) {
+      recommendedLessons = superHighRelevanceLessons.slice(
         0,
         recommendedLessonsCount,
       );
     } else if (
-      highRelevanceLessons.length + mediumRelevanceLessons.length >
+      superHighRelevanceLessons.length + highRelevanceLessons.length >=
       recommendedLessonsCount
     ) {
+      const superHighLessonsCount = superHighRelevanceLessons.length;
+      const highLessonsCount = recommendedLessonsCount - superHighLessonsCount;
+      const classesPerFront = this.getClassesPerFront(
+        highRelevanceLessons,
+        highLessonsCount,
+      );
+      let highIterator = 0;
+      let superHighIterator = 0;
+      let AFrontIterator = 0;
+      let BFrontIterator = 0;
+      let CFrontIterator = 0;
+
+      for (let i = 0; i < allLessons.length; i++) {
+        let lesson = allLessons[i];
+        if (
+          (lesson.relevance === 3 && highIterator < highLessonsCount) ||
+          (lesson.relevance === 4 && superHighIterator < superHighLessonsCount)
+        ) {
+          if (lesson.relevance === 3) {
+            if (lesson.front == 1 && AFrontIterator < classesPerFront.frontA) {
+              AFrontIterator++;
+              highIterator++;
+            } else if (
+              lesson.front == 2 &&
+              BFrontIterator < classesPerFront.frontB
+            ) {
+              BFrontIterator++;
+              highIterator++;
+            } else if (
+              lesson.front == 3 &&
+              CFrontIterator < classesPerFront.frontC
+            ) {
+              CFrontIterator++;
+              highIterator++;
+            }
+          } else if (lesson.relevance === 4) {
+            superHighIterator++;
+          }
+          recommendedLessons.push(lesson);
+        }
+      }
+    } else if (
+      superHighRelevanceLessons.length +
+        highRelevanceLessons.length +
+        mediumRelevanceLessons.length >=
+      recommendedLessonsCount
+    ) {
+      const superHighLessonsCount = superHighRelevanceLessons.length;
       const highLessonsCount = highRelevanceLessons.length;
-      const mediumLessonsCount = recommendedLessonsCount - highLessonsCount;
+      const mediumLessonsCount =
+        recommendedLessonsCount - superHighLessonsCount - highLessonsCount;
       const classesPerFront = this.getClassesPerFront(
         mediumRelevanceLessons,
         mediumLessonsCount,
       );
       let mediumIterator = 0;
       let highIterator = 0;
+      let superHighIterator = 0;
       let AFrontIterator = 0;
       let BFrontIterator = 0;
       let CFrontIterator = 0;
@@ -94,7 +146,8 @@ export class MepService {
         let lesson = allLessons[i];
         if (
           (lesson.relevance === 2 && mediumIterator < mediumLessonsCount) ||
-          (lesson.relevance === 3 && highIterator < highLessonsCount)
+          (lesson.relevance === 3 && highIterator < highLessonsCount) ||
+          (lesson.relevance === 4 && superHighIterator < superHighLessonsCount)
         ) {
           if (lesson.relevance === 2) {
             if (lesson.front == 1 && AFrontIterator < classesPerFront.frontA) {
@@ -115,20 +168,27 @@ export class MepService {
             }
           } else if (lesson.relevance === 3) {
             highIterator++;
+          } else if (lesson.relevance === 4) {
+            superHighIterator++;
           }
           recommendedLessons.push(lesson);
         }
       }
     } else if (
-      highRelevanceLessons.length +
+      superHighRelevanceLessons.length +
+        highRelevanceLessons.length +
         mediumRelevanceLessons.length +
         lowRelevanceLessons.length >=
       recommendedLessonsCount
     ) {
+      const superHighLessonsCount = superHighRelevanceLessons.length;
       const highLessonsCount = highRelevanceLessons.length;
       const mediumLessonsCount = mediumRelevanceLessons.length;
       const lowLessonsCount =
-        recommendedLessonsCount - highLessonsCount - mediumLessonsCount;
+        recommendedLessonsCount -
+        superHighLessonsCount -
+        highLessonsCount -
+        mediumLessonsCount;
       const classesPerFront = this.getClassesPerFront(
         lowRelevanceLessons,
         lowLessonsCount,
@@ -136,6 +196,7 @@ export class MepService {
       let lowIterator = 0;
       let mediumIterator = 0;
       let highIterator = 0;
+      let superHighIterator = 0;
       let AFrontIterator = 0;
       let BFrontIterator = 0;
       let CFrontIterator = 0;
@@ -145,7 +206,8 @@ export class MepService {
         if (
           (lesson.relevance === 1 && lowIterator < lowLessonsCount) ||
           (lesson.relevance === 2 && mediumIterator < mediumLessonsCount) ||
-          (lesson.relevance === 3 && highIterator < highLessonsCount)
+          (lesson.relevance === 3 && highIterator < highLessonsCount) ||
+          (lesson.relevance === 4 && superHighIterator < superHighLessonsCount)
         ) {
           if (lesson.relevance === 1) {
             if (lesson.front == 1 && AFrontIterator < classesPerFront.frontA) {
@@ -168,13 +230,32 @@ export class MepService {
             mediumIterator++;
           } else if (lesson.relevance === 3) {
             highIterator++;
+          } else if (lesson.relevance === 4) {
+            superHighIterator++;
           }
           recommendedLessons.push(lesson);
         }
       }
     }
 
-    return recommendedLessons;
+    const recommendedLessonIds = new Set(
+      recommendedLessons.map((lesson) => lesson.id),
+    );
+    const array1 = recommendedLessons.map((lesson) => ({
+      id: lesson.id,
+      class_name: lesson.class_name,
+      topic_name: lesson.topic_name,
+    }));
+
+    const array2 = allLessons
+      .filter((lesson) => !recommendedLessonIds.has(lesson.id))
+      .map((lesson) => ({
+        id: lesson.id,
+        class_name: lesson.class_name,
+        topic_name: lesson.topic_name,
+      }));
+
+    return { array1, array2, lessonsPerDay };
   }
 
   async createMep(createMepDto: CreateMepDto) {
@@ -193,27 +274,22 @@ export class MepService {
     //recuperamos todas as aulas de acordo com a sheet do exame específico passado pelo usuário.
     const entranceExamSheetName = createMepDto.entrance_exam;
     const service = this.googleSheetsService;
-    const allClasses = await service.getFormatedData(entranceExamSheetName);
+    const allLessons = await service.getFormatedData(entranceExamSheetName);
 
-    //calculamos o número de semanas
-    const weeksCount = this.countWeeksBetweenDates(startDate, endDate);
-
-    //calculamos quantas aulas por dia e a relevancia mínima das aulas.
-    const { lessonsPerDay, minRelevance } = this.createMepClassesDetails(
-      weeksCount,
-      chosenDays.length,
-      createMepDto.hoursPerDay,
-    );
-
-    //filtramos apenas as aulas que possuem a relevancia mínima.
-    const availableClasses = allClasses.filter(
-      (lesson) => lesson.relevance >= minRelevance,
-    );
+    const chosenLessons = allLessons
+      .filter((lesson) =>
+        createMepDto.chosenLessonsReference.includes(lesson.id),
+      )
+      .map((lesson) => ({
+        id: lesson.id,
+        class_name: lesson.class_name,
+        topic_name: lesson.topic_name,
+      }));
 
     //agrupamos as aulas de acordo com a quantidade de aulas por dia
     //['aula_a', 'aula_b','aula_c','aula_d'] -> [['aula_a', 'aula_b'] ,['aula_c','aula_d']]
-    const groupedClasses = availableClasses.reduce((result, item, index) => {
-      const linhaAtual = Math.floor(index / lessonsPerDay);
+    const groupedClasses = chosenLessons.reduce((result, item, index) => {
+      const linhaAtual = Math.floor(index / createMepDto.lessonsPerDay);
       if (!result[linhaAtual]) {
         result[linhaAtual] = [];
       }
@@ -306,7 +382,6 @@ export class MepService {
 
     return {
       lessonsPerDay: relevantSubcondition.classesPerDay,
-      minRelevance: relevantSubcondition.minRelevance,
     };
   }
 
