@@ -14,7 +14,8 @@ export class GoogleSheetsService {
       process.env.ENEM_SHEET_RANGE,
     );
 
-    return this.bruteTableToClassArray(classBruteTable);
+    const finalJson = this.bruteTableToClassArray(classBruteTable);
+    return finalJson.filter((e) => e.relevance > 0);
   }
 
   private async getBruteTableFromGooleSheet(

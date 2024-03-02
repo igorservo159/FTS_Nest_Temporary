@@ -6,6 +6,8 @@ import {
   IsIn,
   IsNotEmpty,
   IsDateString,
+  IsOptional,
+  IsArray,
 } from 'class-validator';
 export class CreateMepDto {
   @IsNotEmpty()
@@ -30,4 +32,13 @@ export class CreateMepDto {
   @IsNotEmpty()
   @IsIn(['ENEM', 'EsPCEx', 'EEAR', 'AFA'])
   entrance_exam: string;
+
+  @IsOptional()
+  @IsNumber()
+  @IsIn([3, 4, 5, 6])
+  lessonsPerDay?: number;
+
+  @IsOptional()
+  @IsArray()
+  chosenLessonsReference?: number[];
 }
