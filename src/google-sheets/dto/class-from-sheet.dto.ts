@@ -21,6 +21,7 @@ export class ClassFromSheetDto {
       BAI: 1,
       MED: 2,
       ALT: 3,
+      SALT: 4,
     };
 
     const [
