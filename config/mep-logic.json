@@ -1,0 +1,166 @@
+[
+  {
+    "weeksRange": [20, 30],
+    "conditions": [
+      {
+        "daysPerWeek": [1],
+        "subconditions": [
+          {
+            "hoursPerDay": [4],
+            "classesPerDay": 6
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [2],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 3
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 4
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 6
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [3],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 3
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 4
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 5
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [4],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 3
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 4
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 6
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [5, 6, 7],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 3
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 4
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 6
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "weeksRange": [15, 20],
+    "conditions": [
+      {
+        "daysPerWeek": [1],
+        "subconditions": [
+          {
+            "hoursPerDay": [4],
+            "classesPerDay": 6
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [2],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 4
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 6
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 6
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [3],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 4
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 5
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 6
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [4, 5],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 3
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 5
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 6
+          }
+        ]
+      },
+      {
+        "daysPerWeek": [6, 7],
+        "subconditions": [
+          {
+            "hoursPerDay": [1.5, 2],
+            "classesPerDay": 3
+          },
+          {
+            "hoursPerDay": [2.5, 3],
+            "classesPerDay": 5
+          },
+          {
+            "hoursPerDay": [3.5, 4],
+            "classesPerDay": 6
+          }
+        ]
+      }
+    ]
+  }
+]
