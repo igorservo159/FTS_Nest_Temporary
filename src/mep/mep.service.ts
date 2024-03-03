@@ -317,7 +317,7 @@ export class MepService {
     startDate: Date,
     endDate: Date,
     chosenDays: number[],
-  ) {
+  ): any[] {
     const weekDictionary = {
       0: 'Domingo',
       1: 'Segunda',
@@ -327,7 +327,7 @@ export class MepService {
       5: 'Sexta',
       6: 'Sábado',
     };
-    const schedule = [];
+    const schedule: any[] = [];
     const currentDate = new Date(startDate);
     while (currentDate <= endDate) {
       const monthDay = String(currentDate.getDate()).padStart(2, '0');
